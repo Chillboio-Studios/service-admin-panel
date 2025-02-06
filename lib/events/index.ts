@@ -48,6 +48,8 @@ export async function redis() {
         : undefined,
     });
 
+    client.on('error', err => console.error('Redis error!', err));
+
     await client.connect();
   }
 
@@ -71,6 +73,9 @@ export async function newRedis() {
         }
       : undefined,
   });
+
+  client.on('error', err => console.error('Redis error!', err));
+  
   await client.connect();
   return client;
 }

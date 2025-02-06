@@ -3,6 +3,8 @@ type TicketMetrics = {
   open: number; // state.name:open
   pending: number; // state.name:pending*
   escalated: number; // escalation_at:<now
+  suspensions_due: number; // pending_time: <now AND title: Account Suspension
+  pending_suspensions: number;
 };
 
 type SearchResults = {
@@ -39,6 +41,8 @@ export async function ticketMetrics(): Promise<TicketMetrics> {
     search("state.name: open"),
     search("state.name: pending*"),
     search("escalation_at:<now"),
+    search("pending_time: <now AND title: Account Suspension"),
+    search("state.name: pending* AND title: Account Suspension"),
   ]);
 
   return {
@@ -46,5 +50,7 @@ export async function ticketMetrics(): Promise<TicketMetrics> {
     open: results[1].tickets_count,
     pending: results[2].tickets_count,
     escalated: results[3].tickets_count,
+    suspensions_due: results[4].tickets_count,
+    pending_suspensions: results[5].tickets_count,
   };
 }
