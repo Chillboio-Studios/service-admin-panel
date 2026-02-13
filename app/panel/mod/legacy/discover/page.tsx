@@ -93,7 +93,7 @@ export default function DiscoverPage() {
             placeholder="Search by server name or reason..."
             className="flex-grow"
             value={search}
-            onChange={(e) => setSearch(e.currentTarget.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.currentTarget.value)}
           >
             <TextField.Slot>
               <MagnifyingGlassIcon />

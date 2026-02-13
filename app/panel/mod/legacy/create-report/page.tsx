@@ -58,7 +58,7 @@ export default function CreateReportPage() {
               <TextField.Root
                 placeholder="User ID or email"
                 value={reportedUserId}
-                onChange={(e) => setReportedUserId(e.currentTarget.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setReportedUserId(e.currentTarget.value)}
               />
               <Text size="1" color="gray">
                 The ID or email of the user being reported
@@ -72,7 +72,7 @@ export default function CreateReportPage() {
               <TextField.Root
                 placeholder="E.g., Harassment, Spam, Hate Speech"
                 value={reason}
-                onChange={(e) => setReason(e.currentTarget.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setReason(e.currentTarget.value)}
               />
             </Flex>
 
@@ -83,7 +83,7 @@ export default function CreateReportPage() {
               <TextArea
                 placeholder="Provide detailed information about the violation, including timestamps and links to relevant content if applicable"
                 value={details}
-                onChange={(e) => setDetails(e.currentTarget.value)}
+                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setDetails(e.currentTarget.value)}
                 rows={8}
               />
             </Flex>

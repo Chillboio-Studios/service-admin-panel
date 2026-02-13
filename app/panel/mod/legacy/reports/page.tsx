@@ -19,7 +19,7 @@ import {
 import { MagnifyingGlassIcon } from "@radix-ui/react-icons";
 
 import { PageTitle } from "@/components/common/navigation/PageTitle";
-import { fetchReportsAction, type ModeratorReport } from "./actions";
+import { fetchReportsAction, type ModeratorReport } from "../actions";
 
 export default function ReportsPage() {
   const [search, setSearch] = useState("");
@@ -104,7 +104,7 @@ export default function ReportsPage() {
             placeholder="Search by user ID or reason..."
             className="flex-grow"
             value={search}
-            onChange={(e) => setSearch(e.currentTarget.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.currentTarget.value)}
           >
             <TextField.Slot>
               <MagnifyingGlassIcon />

@@ -57,7 +57,7 @@ export default function NewTeamMemberPage() {
               <TextField.Root
                 placeholder="John Doe"
                 value={name}
-                onChange={(e) => setName(e.currentTarget.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.currentTarget.value)}
               />
             </Flex>
 
@@ -69,7 +69,7 @@ export default function NewTeamMemberPage() {
                 type="email"
                 placeholder="john@example.com"
                 value={email}
-                onChange={(e) => setEmail(e.currentTarget.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.currentTarget.value)}
               />
             </Flex>
 
@@ -80,7 +80,7 @@ export default function NewTeamMemberPage() {
               <TextField.Root
                 placeholder="E.g., Hired as software engineer"
                 value={reason}
-                onChange={(e) => setReason(e.currentTarget.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setReason(e.currentTarget.value)}
               />
             </Flex>
 

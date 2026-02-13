@@ -71,7 +71,7 @@ export default function TeamPage() {
             placeholder="Search by name or email..."
             className="flex-grow"
             value={search}
-            onChange={(e) => setSearch(e.currentTarget.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.currentTarget.value)}
           >
             <TextField.Slot>
               <MagnifyingGlassIcon />

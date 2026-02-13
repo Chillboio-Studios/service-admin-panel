@@ -44,7 +44,7 @@ export function TeamMemberDetails({
       </Button>
 
       <AlertDialog.Root>
-        <AlertDialog.Trigger asChild>
+        <AlertDialog.Trigger>
           <Button size="2" color="red" variant="soft" disabled={rejectMutation.isPending}>
             Reject
           </Button>
@@ -58,7 +58,7 @@ export function TeamMemberDetails({
             <TextField.Root
               placeholder="Reason for rejection (optional)"
               value={rejectReason}
-              onChange={(e) => setRejectReason(e.currentTarget.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setRejectReason(e.currentTarget.value)}
             />
           </AlertDialog.Description>
 
