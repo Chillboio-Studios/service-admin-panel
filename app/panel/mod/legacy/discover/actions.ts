@@ -47,7 +47,7 @@ export async function approveDiscoverRequest(requestId: string) {
       id: requestId,
     },
     type: "discover/approve" as const,
-  } satisfies Omit<ChangeLogDocument, "_id" | "userEmail">);
+  } as Omit<ChangeLogDocument, "_id" | "userEmail">);
 }
 
 export async function rejectDiscoverRequest(
@@ -77,5 +77,5 @@ export async function rejectDiscoverRequest(
     },
     type: "discover/reject" as const,
     reason,
-  } satisfies Omit<ChangeLogDocument, "_id" | "userEmail">);
+  } as Omit<ChangeLogDocument, "_id" | "userEmail">);
 }

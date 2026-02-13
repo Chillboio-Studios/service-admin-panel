@@ -43,7 +43,7 @@ export async function strikeUser(
       type: "user/strike" as const,
       id: strike._id,
       reason,
-    } satisfies Omit<ChangeLogDocument, "_id" | "userEmail">;
+    } as Omit<ChangeLogDocument, "_id" | "userEmail">;
   } else if (type === "suspension") {
     changelogDoc = {
       object: {
@@ -54,7 +54,7 @@ export async function strikeUser(
       id: strike._id,
       duration,
       reason,
-    } satisfies Omit<ChangeLogDocument, "_id" | "userEmail">;
+    } as Omit<ChangeLogDocument, "_id" | "userEmail">;
   } else {
     changelogDoc = {
       object: {
@@ -64,7 +64,7 @@ export async function strikeUser(
       type: "user/ban" as const,
       id: strike._id,
       reason,
-    } satisfies Omit<ChangeLogDocument, "_id" | "userEmail">;
+    } as Omit<ChangeLogDocument, "_id" | "userEmail">;
   }
 
   const changelog = await createChangelog(userEmail, changelogDoc);

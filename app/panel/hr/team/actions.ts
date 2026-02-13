@@ -42,7 +42,7 @@ export async function createPersonAction(
     },
     type: "person/create" as const,
     reason,
-  } satisfies Omit<ChangeLogDocument, "_id" | "userEmail">);
+  } as Omit<ChangeLogDocument, "_id" | "userEmail">);
 }
 
 export async function approvePerson(personId: string) {
@@ -61,7 +61,7 @@ export async function approvePerson(personId: string) {
       id: person._id,
     },
     type: "person/approve" as const,
-  } satisfies Omit<ChangeLogDocument, "_id" | "userEmail">);
+  } as Omit<ChangeLogDocument, "_id" | "userEmail">);
 }
 
 export async function rejectPersonRequest(personId: string) {
@@ -78,7 +78,7 @@ export async function rejectPersonRequest(personId: string) {
       id: person._id,
     },
     type: "person/reject" as const,
-  } satisfies Omit<ChangeLogDocument, "_id" | "userEmail">);
+  } as Omit<ChangeLogDocument, "_id" | "userEmail">);
 }
 
 export async function grantPosition(
@@ -99,7 +99,7 @@ export async function grantPosition(
     },
     type: "person/position" as const,
     positionId,
-  } satisfies Omit<ChangeLogDocument, "_id" | "userEmail">);
+  } as Omit<ChangeLogDocument, "_id" | "userEmail">);
 }
 
 export async function grantRole(personId: string, roleId: string) {
@@ -116,5 +116,5 @@ export async function grantRole(personId: string, roleId: string) {
     },
     type: "person/role" as const,
     roleId,
-  } satisfies Omit<ChangeLogDocument, "_id" | "userEmail">);
+  } as Omit<ChangeLogDocument, "_id" | "userEmail">);
 }
