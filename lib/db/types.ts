@@ -111,6 +111,60 @@ export type ChangeLogDocument = {
           content: string;
         }
     ))
+  | ({
+      object: {
+        type: "Person";
+        id: string;
+      };
+    } & (
+      | {
+          type: "person/create";
+          reason: string;
+        }
+      | {
+          type: "person/approve";
+        }
+      | {
+          type: "person/reject";
+        }
+      | {
+          type: "person/position";
+          positionId: string;
+        }
+      | {
+          type: "person/role";
+          roleId: string;
+        }
+    ))
+  | ({
+      object: {
+        type: "Report";
+        id: string;
+      };
+    } & (
+      | {
+          type: "report/create";
+          reason: string;
+        }
+      | {
+          type: "comment";
+          text: string;
+        }
+    ))
+  | ({
+      object: {
+        type: "DiscoverRequest";
+        id: string;
+      };
+    } & (
+      | {
+          type: "discover/approve";
+        }
+      | {
+          type: "discover/reject";
+          reason: string;
+        }
+    ))
 );
 
 /**
