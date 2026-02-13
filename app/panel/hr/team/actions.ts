@@ -37,10 +37,10 @@ export async function createPersonAction(
 
   await createChangelog(userEmail, {
     object: {
-      type: "Person",
+      type: "Person" as const,
       id: email,
     },
-    type: "person/create",
+    type: "person/create" as const,
     reason,
   } satisfies Omit<ChangeLogDocument, "_id" | "userEmail">);
 }
@@ -57,10 +57,10 @@ export async function approvePerson(personId: string) {
 
   await createChangelog(userEmail, {
     object: {
-      type: "Person",
+      type: "Person" as const,
       id: person._id,
     },
-    type: "person/approve",
+    type: "person/approve" as const,
   } satisfies Omit<ChangeLogDocument, "_id" | "userEmail">);
 }
 
@@ -74,10 +74,10 @@ export async function rejectPersonRequest(personId: string) {
 
   await createChangelog(userEmail, {
     object: {
-      type: "Person",
+      type: "Person" as const,
       id: person._id,
     },
-    type: "person/reject",
+    type: "person/reject" as const,
   } satisfies Omit<ChangeLogDocument, "_id" | "userEmail">);
 }
 
@@ -94,10 +94,10 @@ export async function grantPosition(
 
   await createChangelog(userEmail, {
     object: {
-      type: "Person",
+      type: "Person" as const,
       id: personId,
     },
-    type: "person/position",
+    type: "person/position" as const,
     positionId,
   } satisfies Omit<ChangeLogDocument, "_id" | "userEmail">);
 }
@@ -111,10 +111,10 @@ export async function grantRole(personId: string, roleId: string) {
 
   await createChangelog(userEmail, {
     object: {
-      type: "Person",
+      type: "Person" as const,
       id: personId,
     },
-    type: "person/role",
+    type: "person/role" as const,
     roleId,
   } satisfies Omit<ChangeLogDocument, "_id" | "userEmail">);
 }

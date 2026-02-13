@@ -43,10 +43,10 @@ export async function approveDiscoverRequest(requestId: string) {
 
   await createChangelog(userEmail, {
     object: {
-      type: "DiscoverRequest",
+      type: "DiscoverRequest" as const,
       id: requestId,
     },
-    type: "discover/approve",
+    type: "discover/approve" as const,
   } satisfies Omit<ChangeLogDocument, "_id" | "userEmail">);
 }
 
@@ -72,10 +72,10 @@ export async function rejectDiscoverRequest(
 
   await createChangelog(userEmail, {
     object: {
-      type: "DiscoverRequest",
+      type: "DiscoverRequest" as const,
       id: requestId,
     },
-    type: "discover/reject",
+    type: "discover/reject" as const,
     reason,
   } satisfies Omit<ChangeLogDocument, "_id" | "userEmail">);
 }

@@ -37,20 +37,20 @@ export async function strikeUser(
   if (type === "strike") {
     changelogDoc = {
       object: {
-        type: "User",
+        type: "User" as const,
         id: userId,
       },
-      type: "user/strike",
+      type: "user/strike" as const,
       id: strike._id,
       reason,
     } satisfies Omit<ChangeLogDocument, "_id" | "userEmail">;
   } else if (type === "suspension") {
     changelogDoc = {
       object: {
-        type: "User",
+        type: "User" as const,
         id: userId,
       },
-      type: "user/suspend",
+      type: "user/suspend" as const,
       id: strike._id,
       duration,
       reason,
@@ -58,10 +58,10 @@ export async function strikeUser(
   } else {
     changelogDoc = {
       object: {
-        type: "User",
+        type: "User" as const,
         id: userId,
       },
-      type: "user/ban",
+      type: "user/ban" as const,
       id: strike._id,
       reason,
     } satisfies Omit<ChangeLogDocument, "_id" | "userEmail">;
