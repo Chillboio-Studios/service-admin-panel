@@ -3,6 +3,7 @@
 import { getScopedUser } from "@/lib/auth";
 import { RBAC_PERMISSION_MODERATION_AGENT } from "@/lib/auth/rbacInternal";
 import { createChangelog } from "@/lib/core";
+import { ChangeLogDocument } from "@/lib/db/types";
 import { suspendUser } from "@/lib/database/revolt";
 import { createOrFindDM } from "@/lib/database/revolt/channels";
 import { sendMessage } from "@/lib/database/revolt/messages";
@@ -31,30 +32,42 @@ export async function strikeUser(
     caseId,
   );
 
-  const changelog = await createChangelog(userEmail, {
-    object: {
-      type: "User" as const,
-      id: userId,
-    },
-    ...(type === "strike"
-      ? {
-          type: "user/strike" as const,
-          id: strike._id,
-          reason,
-        }
-      : type === "suspension"
-        ? {
-            type: "user/suspend" as const,
-            id: strike._id,
-            duration,
-            reason,
-          }
-        : {
-            type: "user/ban" as const,
-            id: strike._id,
-            reason,
-          }),
-  });
+  let changelogDoc: Omit<ChangeLogDocument, "_id" | "userEmail">;
+  
+  if (type === "strike") {
+    changelogDoc = {
+      object: {
+        type: "User",
+        id: userId,
+      },
+      type: "user/strike",
+      id: strike._id,
+      reason,
+    } satisfies Omit<ChangeLogDocument, "_id" | "userEmail">;
+  } else if (type === "suspension") {
+    changelogDoc = {
+      object: {
+        type: "User",
+        id: userId,
+      },
+      type: "user/suspend",
+      id: strike._id,
+      duration,
+      reason,
+    } satisfies Omit<ChangeLogDocument, "_id" | "userEmail">;
+  } else {
+    changelogDoc = {
+      object: {
+        type: "User",
+        id: userId,
+      },
+      type: "user/ban",
+      id: strike._id,
+      reason,
+    } satisfies Omit<ChangeLogDocument, "_id" | "userEmail">;
+  }
+
+  const changelog = await createChangelog(userEmail, changelogDoc);
 
   if (type === "suspension") {
     await suspendUser(

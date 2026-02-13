@@ -16,6 +16,7 @@ import {
   updatePersonApproved,
 } from "@/lib/database/hr/people";
 import { createChangelog } from "@/lib/core";
+import { ChangeLogDocument } from "@/lib/db/types";
 
 export async function fetchPeopleAction() {
   return fetchPeople();
@@ -36,12 +37,12 @@ export async function createPersonAction(
 
   await createChangelog(userEmail, {
     object: {
-      type: "Person" as const,
+      type: "Person",
       id: email,
     },
-    type: "person/create" as const,
+    type: "person/create",
     reason,
-  });
+  } satisfies Omit<ChangeLogDocument, "_id" | "userEmail">);
 }
 
 export async function approvePerson(personId: string) {
@@ -56,11 +57,11 @@ export async function approvePerson(personId: string) {
 
   await createChangelog(userEmail, {
     object: {
-      type: "Person" as const,
+      type: "Person",
       id: person._id,
     },
-    type: "person/approve" as const,
-  });
+    type: "person/approve",
+  } satisfies Omit<ChangeLogDocument, "_id" | "userEmail">);
 }
 
 export async function rejectPersonRequest(personId: string) {
@@ -73,11 +74,11 @@ export async function rejectPersonRequest(personId: string) {
 
   await createChangelog(userEmail, {
     object: {
-      type: "Person" as const,
+      type: "Person",
       id: person._id,
     },
-    type: "person/reject" as const,
-  });
+    type: "person/reject",
+  } satisfies Omit<ChangeLogDocument, "_id" | "userEmail">);
 }
 
 export async function grantPosition(
@@ -93,12 +94,12 @@ export async function grantPosition(
 
   await createChangelog(userEmail, {
     object: {
-      type: "Person" as const,
+      type: "Person",
       id: personId,
     },
-    type: "person/position" as const,
+    type: "person/position",
     positionId,
-  });
+  } satisfies Omit<ChangeLogDocument, "_id" | "userEmail">);
 }
 
 export async function grantRole(personId: string, roleId: string) {
@@ -110,10 +111,10 @@ export async function grantRole(personId: string, roleId: string) {
 
   await createChangelog(userEmail, {
     object: {
-      type: "Person" as const,
+      type: "Person",
       id: personId,
     },
-    type: "person/role" as const,
+    type: "person/role",
     roleId,
-  });
+  } satisfies Omit<ChangeLogDocument, "_id" | "userEmail">);
 }

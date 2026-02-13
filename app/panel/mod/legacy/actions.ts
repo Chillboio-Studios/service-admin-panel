@@ -6,6 +6,7 @@ import {
   RBAC_PERMISSION_MODERATION_DISCOVER,
 } from "@/lib/auth/rbacInternal";
 import { createChangelog } from "@/lib/core";
+import { ChangeLogDocument } from "@/lib/db/types";
 import { col } from "@/lib/db";
 
 export interface ModeratorReport {
@@ -39,12 +40,12 @@ export async function createReportAction(
 
   await createChangelog(userEmail, {
     object: {
-      type: "Report" as const,
+      type: "Report",
       id: report._id,
     },
-    type: "report/create" as const,
+    type: "report/create",
     reason,
-  });
+  } satisfies Omit<ChangeLogDocument, "_id" | "userEmail">);
 }
 
 export async function fetchReportsAction() {
@@ -83,11 +84,11 @@ export async function approveDiscoverRequest(requestId: string) {
 
   await createChangelog(userEmail, {
     object: {
-      type: "DiscoverRequest" as const,
+      type: "DiscoverRequest",
       id: requestId,
     },
-    type: "discover/approve" as const,
-  });
+    type: "discover/approve",
+  } satisfies Omit<ChangeLogDocument, "_id" | "userEmail">);
 }
 
 export async function rejectDiscoverRequest(
@@ -112,10 +113,10 @@ export async function rejectDiscoverRequest(
 
   await createChangelog(userEmail, {
     object: {
-      type: "DiscoverRequest" as const,
+      type: "DiscoverRequest",
       id: requestId,
     },
-    type: "discover/reject" as const,
+    type: "discover/reject",
     reason,
-  });
+  } satisfies Omit<ChangeLogDocument, "_id" | "userEmail">);
 }
