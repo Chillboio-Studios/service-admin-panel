@@ -76,7 +76,7 @@ export default async function Home() {
             <Flex direction="column" gap="3" align="center">
               <Heading size="4">Access Restricted</Heading>
               <Text color="gray">
-                You don't have permission to access any modules. Please contact
+                You don&apos;t have permission to access any modules. Please contact
                 your administrator.
               </Text>
             </Flex>
