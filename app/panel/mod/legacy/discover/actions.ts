@@ -19,7 +19,7 @@ export interface DiscoverRequest {
 export async function fetchDiscoverRequestsAction() {
   await getScopedUser(RBAC_PERMISSION_MODERATION_DISCOVER);
 
-  return col("discover_requests")
+  return col<DiscoverRequest>("discover_requests")
     .find({})
     .sort({ created_at: -1 })
     .toArray();
@@ -30,7 +30,7 @@ export async function approveDiscoverRequest(requestId: string) {
     RBAC_PERMISSION_MODERATION_DISCOVER,
   );
 
-  await col("discover_requests").updateOne(
+  await col<DiscoverRequest>("discover_requests").updateOne(
     { _id: requestId },
     {
       $set: {
@@ -58,7 +58,7 @@ export async function rejectDiscoverRequest(
     RBAC_PERMISSION_MODERATION_DISCOVER,
   );
 
-  await col("discover_requests").updateOne(
+  await col<DiscoverRequest>(\"discover_requests\").updateOne(
     { _id: requestId },
     {
       $set: {

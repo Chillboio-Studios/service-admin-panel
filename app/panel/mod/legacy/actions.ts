@@ -19,6 +19,21 @@ export interface ModeratorReport {
   created_by: string;
 }
 
+export interface DiscoverRequest {
+  _id: string;
+  server_id?: string;
+  server_name?: string;
+  bot_id?: string;
+  bot_name?: string;
+  reason: string;
+  status: "pending" | "approved" | "rejected";
+  created_at: Date;
+  created_by: string;
+  reviewed_by?: string;
+  reviewed_at?: Date;
+  rejection_reason?: string;
+}
+
 export async function createReportAction(
   reportedUserId: string,
   reason: string,
@@ -60,7 +75,7 @@ export async function fetchReportsAction() {
 export async function fetchDiscoverRequestsAction() {
   await getScopedUser(RBAC_PERMISSION_MODERATION_DISCOVER);
 
-  return col("discover_requests")
+  return col<DiscoverRequest>(\"discover_requests\")
     .find({})
     .sort({ created_at: -1 })
     .toArray();
@@ -71,7 +86,7 @@ export async function approveDiscoverRequest(requestId: string) {
     RBAC_PERMISSION_MODERATION_DISCOVER,
   );
 
-  await col("discover_requests").updateOne(
+  await col<DiscoverRequest>(\"discover_requests\").updateOne(
     { _id: requestId },
     {
       $set: {
@@ -99,7 +114,7 @@ export async function rejectDiscoverRequest(
     RBAC_PERMISSION_MODERATION_DISCOVER,
   );
 
-  await col("discover_requests").updateOne(
+  await col<DiscoverRequest>("discover_requests").updateOne(
     { _id: requestId },
     {
       $set: {
