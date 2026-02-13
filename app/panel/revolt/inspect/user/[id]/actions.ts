@@ -33,24 +33,24 @@ export async function strikeUser(
 
   const changelog = await createChangelog(userEmail, {
     object: {
-      type: "User",
+      type: "User" as const,
       id: userId,
     },
     ...(type === "strike"
       ? {
-          type: "user/strike",
+          type: "user/strike" as const,
           id: strike._id,
           reason,
         }
       : type === "suspension"
         ? {
-            type: "user/suspend",
+            type: "user/suspend" as const,
             id: strike._id,
             duration,
             reason,
           }
         : {
-            type: "user/ban",
+            type: "user/ban" as const,
             id: strike._id,
             reason,
           }),
