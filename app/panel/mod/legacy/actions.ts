@@ -21,7 +21,7 @@ export interface ModeratorReport {
 }
 
 export interface DiscoverRequest {
-  _id: string;
+  _id: ObjectId; // ← FIXED
   server_id?: string;
   server_name?: string;
   bot_id?: string;
@@ -56,10 +56,10 @@ export async function createReportAction(
 
   await createChangelog(userEmail, {
     object: {
-      type: "Report" as const,
+      type: "Report",
       id: report._id,
     },
-    type: "report/create" as const,
+    type: "report/create",
     reason,
   } as Omit<ChangeLogDocument, "_id" | "userEmail">);
 }
@@ -100,10 +100,10 @@ export async function approveDiscoverRequest(requestId: string) {
 
   await createChangelog(userEmail, {
     object: {
-      type: "DiscoverRequest" as const,
+      type: "DiscoverRequest",
       id: requestId,
     },
-    type: "discover/approve" as const,
+    type: "discover/approve",
   } as Omit<ChangeLogDocument, "_id" | "userEmail">);
 }
 
@@ -129,10 +129,10 @@ export async function rejectDiscoverRequest(
 
   await createChangelog(userEmail, {
     object: {
-      type: "DiscoverRequest" as const,
+      type: "DiscoverRequest",
       id: requestId,
     },
-    type: "discover/reject" as const,
+    type: "discover/reject",
     reason,
   } as Omit<ChangeLogDocument, "_id" | "userEmail">);
 }
