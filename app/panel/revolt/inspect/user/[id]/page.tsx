@@ -37,7 +37,7 @@ import {
   ManageAccountEmail,
   ManageAccountMFA,
 } from "./accountManagement";
-import { getUserBadges } from "./actions";
+import { getUserBadges, getSuspensionInfo } from "./actions";
 import { UserStrikes } from "./userManagement";
 
 type Props = { params: { id: string } };
@@ -46,6 +46,7 @@ const getUser = cache(async (id: string) => ({
   account: await fetchAccountById(id),
   user: await fetchUserById(id),
   badges: await getUserBadges(id).catch(() => 0),
+  suspension: await getSuspensionInfo(id).catch(() => null),
 }));
 
 export async function generateMetadata(
@@ -69,7 +70,7 @@ export const dynamic = "force-dynamic";
 export default async function User({ params }: Props) {
   await getScopedUser(RBAC_PERMISSION_MODERATION_AGENT);
 
-  const { account, user, badges } = await getUser(params.id);
+  const { account, user, badges, suspension } = await getUser(params.id);
   if (!account && !user) notFound();
 
   const strikes = await fetchStrikes(params.id);
@@ -104,11 +105,38 @@ export default async function User({ params }: Props) {
                 </Text>
               </Flex>
 
+              {suspension && (
+                <Flex
+                  direction="column"
+                  gap="1"
+                  py="2"
+                  px="3"
+                  style={{
+                    backgroundColor: "var(--amber-3)",
+                    borderRadius: "var(--radius-2)",
+                    border: "1px solid var(--amber-6)",
+                  }}
+                >
+                  <Text size="2" weight="bold" color="amber">
+                    Account Suspended
+                  </Text>
+                  <Text size="1" color="amber">
+                    Reason: {suspension.reason}
+                  </Text>
+                  <Text size="1" color="amber">
+                    {suspension.expiresAt
+                      ? `Expires: ${new Date(suspension.expiresAt).toLocaleString()}`
+                      : "Duration: Indefinite"}
+                  </Text>
+                </Flex>
+              )}
+
               <ManageAccount
                 id={params.id}
                 attempts={account.lockout?.attempts || 0}
                 disabled={(account as any).disabled || false}
                 deletionQueued={!!(account as any).deletion}
+                suspensionActive={!!suspension}
               />
 
               <Flex direction="column" gap="2">

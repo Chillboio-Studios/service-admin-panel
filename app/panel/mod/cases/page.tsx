@@ -397,6 +397,7 @@ export default function CaseManagement() {
                       <Table.ColumnHeaderCell>Status</Table.ColumnHeaderCell>
                       <Table.ColumnHeaderCell>Case ID</Table.ColumnHeaderCell>
                       <Table.ColumnHeaderCell>Context</Table.ColumnHeaderCell>
+                      <Table.ColumnHeaderCell>Actions</Table.ColumnHeaderCell>
                     </Table.Row>
                   </Table.Header>
                   <Table.Body>
@@ -434,6 +435,17 @@ export default function CaseManagement() {
                           <Text size="1" color="gray">
                             {report.additional_context.substring(0, 40)}...
                           </Text>
+                        </Table.Cell>
+                        <Table.Cell>
+                          <Button
+                            asChild
+                            size="1"
+                            variant="soft"
+                          >
+                            <Link href={`/panel/mod/cases/report/${report._id}`}>
+                              View
+                            </Link>
+                          </Button>
                         </Table.Cell>
                       </Table.Row>
                     ))}

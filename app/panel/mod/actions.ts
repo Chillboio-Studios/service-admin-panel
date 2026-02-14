@@ -5,7 +5,7 @@ import {
   RBAC_PERMISSION_MODERATION_AGENT,
   RBAC_PERMISSION_MODERATION_DISCOVER,
 } from "@/lib/auth/rbacInternal";
-import { cases, reports, changelog, users } from "@/lib/db/types";
+import { cases, reports, changelog, users, snapshots } from "@/lib/db/types";
 import { ulid } from "ulid";
 
 export interface CaseWithStats {
@@ -336,5 +336,142 @@ export async function getReportsCaseStats() {
     };
   } catch (error) {
     return { uncased: 0, cased: 0, total: 0 };
+  }
+}
+
+export async function fetchReportDetails(reportId: string) {
+  const userEmail = await getScopedUser(RBAC_PERMISSION_MODERATION_AGENT);
+
+  try {
+    const report = await reports().findOne({ _id: reportId });
+    if (!report) return null;
+
+    const reportSnapshots = await snapshots()
+      .find({ report_id: reportId })
+      .toArray();
+
+    const relatedCase = report.case_id
+      ? await cases().findOne({ _id: report.case_id })
+      : null;
+
+    const reportHistory = await changelog()
+      .find({ "object.id": reportId, "object.type": "Report" })
+      .sort({ _id: -1 })
+      .limit(20)
+      .toArray();
+
+    return {
+      report,
+      snapshots: reportSnapshots,
+      case: relatedCase,
+      history: reportHistory,
+    };
+  } catch (error) {
+    console.error("Error fetching report details:", error);
+    return null;
+  }
+}
+
+export async function resolveReport(reportId: string) {
+  const userEmail = await getScopedUser(RBAC_PERMISSION_MODERATION_AGENT);
+
+  try {
+    await reports().updateOne(
+      { _id: reportId },
+      {
+        $set: {
+          status: "Resolved",
+          closed_at: new Date().toISOString(),
+        },
+      },
+    );
+
+    await changelog().insertOne({
+      _id: ulid(),
+      userEmail,
+      object: { type: "Report", id: reportId },
+      type: "comment",
+      text: "Report resolved",
+    } as any);
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error resolving report:", error);
+    throw error;
+  }
+}
+
+export async function rejectReport(reportId: string, reason: string) {
+  const userEmail = await getScopedUser(RBAC_PERMISSION_MODERATION_AGENT);
+
+  try {
+    await reports().updateOne(
+      { _id: reportId },
+      {
+        $set: {
+          status: "Rejected",
+          rejection_reason: reason,
+          closed_at: new Date().toISOString(),
+        },
+      },
+    );
+
+    await changelog().insertOne({
+      _id: ulid(),
+      userEmail,
+      object: { type: "Report", id: reportId },
+      type: "comment",
+      text: `Report rejected: ${reason}`,
+    } as any);
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error rejecting report:", error);
+    throw error;
+  }
+}
+
+export async function assignReportToCase(reportId: string, caseId: string) {
+  const userEmail = await getScopedUser(RBAC_PERMISSION_MODERATION_AGENT);
+
+  try {
+    await reports().updateOne(
+      { _id: reportId },
+      { $set: { case_id: caseId } },
+    );
+
+    await changelog().insertOne({
+      _id: ulid(),
+      userEmail,
+      object: { type: "Case", id: caseId },
+      type: "case/add_report",
+      reportId,
+    } as any);
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error assigning report to case:", error);
+    throw error;
+  }
+}
+
+export async function updateCaseTitle(caseId: string, title: string) {
+  const userEmail = await getScopedUser(RBAC_PERMISSION_MODERATION_AGENT);
+
+  try {
+    await cases().updateOne({ _id: caseId }, { $set: { title } });
+
+    await changelog().insertOne({
+      _id: ulid(),
+      userEmail,
+      object: { type: "Case", id: caseId },
+      type: "case/title",
+      title,
+    } as any);
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error updating case title:", error);
+    throw error;
   }
 }

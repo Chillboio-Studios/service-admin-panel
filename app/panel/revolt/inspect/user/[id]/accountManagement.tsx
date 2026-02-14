@@ -30,11 +30,13 @@ export function ManageAccount({
   attempts,
   disabled: initialDisabled,
   deletionQueued,
+  suspensionActive,
 }: {
   id: string;
   attempts: number;
   disabled?: boolean;
   deletionQueued?: boolean;
+  suspensionActive?: boolean;
 }) {
   const [isDisabled, setIsDisabled] = useState(initialDisabled || false);
   const [isDeletionQueued, setIsDeletionQueued] = useState(deletionQueued || false);
@@ -74,10 +76,15 @@ export function ManageAccount({
       <Button
         color={isDisabled ? "green" : "red"}
         variant="outline"
-        disabled={disableMut.isPending}
+        disabled={disableMut.isPending || !!suspensionActive}
         onClick={() => disableMut.mutate()}
+        title={suspensionActive ? "Account is disabled due to active suspension" : undefined}
       >
-        {isDisabled ? "Enable Account" : "Disable Account"}
+        {suspensionActive
+          ? "Disabled (Suspended)"
+          : isDisabled
+            ? "Enable Account"
+            : "Disable Account"}
       </Button>
       <Button
         color={isDeletionQueued ? "amber" : "red"}

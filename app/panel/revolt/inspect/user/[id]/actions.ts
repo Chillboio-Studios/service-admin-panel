@@ -118,6 +118,28 @@ export async function strikeUser(
       duration === "indefinite" ? 0 : parseInt(duration),
       reason,
     );
+
+    // Disable the account for the suspension duration
+    const suspensionUpdate: Record<string, any> = { disabled: true };
+    if (duration !== "indefinite") {
+      const expiresAt = new Date(
+        Date.now() + parseInt(duration) * 24 * 60 * 60 * 1000,
+      ).toISOString();
+      suspensionUpdate.suspension = {
+        active: true,
+        reason: reason.join(", "),
+        expiresAt,
+        strikeId: strike._id,
+      };
+    } else {
+      suspensionUpdate.suspension = {
+        active: true,
+        reason: reason.join(", "),
+        expiresAt: null, // indefinite
+        strikeId: strike._id,
+      };
+    }
+    await accounts().updateOne({ _id: userId }, { $set: suspensionUpdate });
   }
 
   // -----------------------------
@@ -365,8 +387,14 @@ export async function unsuspendUser(userId: string) {
   // Remove suspension flags from user document
   await users().updateOne({ _id: userId }, { $set: { flags: 0 } });
 
-  // Re-enable account
-  await accounts().updateOne({ _id: userId }, { $set: { disabled: false } });
+  // Re-enable account and clear suspension metadata
+  await accounts().updateOne(
+    { _id: userId },
+    {
+      $set: { disabled: false },
+      $unset: { suspension: 1 },
+    },
+  );
 
   await createChangelog(userEmail, {
     object: { type: "User", id: userId },
@@ -376,6 +404,20 @@ export async function unsuspendUser(userId: string) {
   } as any);
 
   return { success: true };
+}
+
+export async function getSuspensionInfo(userId: string) {
+  await getScopedUser(RBAC_PERMISSION_MODERATION_AGENT);
+  const account = await accounts().findOne({ _id: userId });
+  if (!account) return null;
+  const suspension = (account as any).suspension;
+  if (!suspension || !suspension.active) return null;
+  return {
+    active: true as const,
+    reason: suspension.reason as string,
+    expiresAt: suspension.expiresAt as string | null,
+    strikeId: suspension.strikeId as string | undefined,
+  };
 }
 
 // =============================================================================
