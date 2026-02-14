@@ -19,7 +19,22 @@ export async function strikeUser(
   duration: "7" | "14" | "indefinite",
 ) {
   const userEmail = await getScopedUser(RBAC_PERMISSION_MODERATION_AGENT);
-  if (caseId && !(await findCaseById(caseId))) throw "Case doesn't exist?";
+
+  // Sanitize bogus case IDs before touching DB / Neon / ULID parsing
+  if (
+    !caseId ||
+    caseId === "$undefined" ||
+    caseId === "undefined" ||
+    caseId === "null" ||
+    caseId.trim() === "" ||
+    caseId.length !== 26
+  ) {
+    caseId = undefined;
+  }
+
+  if (caseId && !(await findCaseById(caseId))) {
+    throw "Case doesn't exist?";
+  }
 
   const strike = await createStrike(
     userId,
@@ -33,7 +48,7 @@ export async function strikeUser(
   );
 
   let changelogDoc: Omit<ChangeLogDocument, "_id" | "userEmail">;
-  
+
   if (type === "strike") {
     changelogDoc = {
       object: {
@@ -43,7 +58,7 @@ export async function strikeUser(
       type: "user/strike" as const,
       id: strike._id,
       reason,
-    } as Omit<ChangeLogDocument, "_id" | "userEmail">;
+    };
   } else if (type === "suspension") {
     changelogDoc = {
       object: {
@@ -54,7 +69,7 @@ export async function strikeUser(
       id: strike._id,
       duration,
       reason,
-    } as Omit<ChangeLogDocument, "_id" | "userEmail">;
+    };
   } else {
     changelogDoc = {
       object: {
@@ -64,7 +79,7 @@ export async function strikeUser(
       type: "user/ban" as const,
       id: strike._id,
       reason,
-    } as Omit<ChangeLogDocument, "_id" | "userEmail">;
+    };
   }
 
   const changelog = await createChangelog(userEmail, changelogDoc);
@@ -91,11 +106,11 @@ export async function strikeUser(
         ...reason.map((r) => `- ${r}`),
         "",
         type === "suspension"
-          ? "Further violations may result in a permanent ban depending on severity, please abide by the [Acceptable Usage Policy](https://stoat.chat/aup)."
-          : "Further violations will result in suspension or a permanent ban depending on severity, please abide by the [Acceptable Usage Policy](https://stoat.chat/aup).",
+          ? "Further violations may result in a permanent ban depending on severity, please abide by the [Acceptable Usage Policy](https://otube.nl/aup)."
+          : "Further violations will result in suspension or a permanent ban depending on severity, please abide by the [Acceptable Usage Policy](https://otube.nl/aup).",
         ...(caseId
           ? ["", `Case ID for your reference: **${caseId.substring(18)}**`]
-          : ""),
+          : []),
         "If you have further questions about this strike, please contact abuse@revolt.chat",
       ].join("\n"),
     });

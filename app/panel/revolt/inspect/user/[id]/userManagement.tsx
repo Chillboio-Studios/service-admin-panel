@@ -4,7 +4,7 @@ import { consumeChangelog } from "@/components/core/admin/changelogs/helpers";
 import { Strike } from "@/lib/database/revolt/safety_strikes";
 import { useMutation } from "@tanstack/react-query";
 import dayjs from "dayjs";
-import relativeTime from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
 import { useState } from "react";
 import { decodeTime } from "ulid";
 
@@ -46,43 +46,56 @@ export function UserStrikeActions({
   const [confirm, setConfirm] = useState(false);
   const [days, setDays] = useState<"7" | "14" | "indefinite">("7");
 
+  // --- SAFE CASE ID ---
+  const safeCaseId =
+    !caseId ||
+    caseId === "$undefined" ||
+    caseId === "undefined" ||
+    caseId === "null" ||
+    caseId.trim() === "" ||
+    caseId.length !== 26
+      ? undefined
+      : caseId;
+
+  // --- REASON EDITOR ---
   const reasonEditor = () =>
     reason.map((value, idx) => (
-      <>
+      <div key={idx}>
         <TextField.Root
-          key={idx}
           value={value}
           onChange={(e) =>
             setReason((r) => r.map((v, i) => (i === idx ? e.target.value : v)))
           }
-          onKeyDown={(e) =>
-            e.key === "Enter"
-              ? setReason((r) => [...r, ""])
-              : e.key === "Backspace" && !reason[idx] && reason.length > 1
-                ? setReason((r) => r.filter((_, i) => i !== idx))
-                : null
-          }
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              setReason((r) => [...r, ""]);
+            } else if (e.key === "Backspace" && !reason[idx] && reason.length > 1) {
+              setReason((r) => r.filter((_, i) => i !== idx));
+            }
+          }}
           placeholder={
             idx === 0
               ? "Specify strike reason (press enter to add reasons)"
               : "Specify a reason (backspace to remove)"
           }
         />
-        <br />
-      </>
+      </div>
     ));
 
+  // --- STRIKE / SUSPEND / BAN ---
   const mutation = useMutation({
     mutationFn: async (type: "strike" | "suspension" | "ban") => {
-      if (type === "ban" && !confirm)
-        return alert("Not banning, check the confirmation checkbox!");
+      if (type === "ban" && !confirm) {
+        alert("Not banning, check the confirmation checkbox!");
+        return;
+      }
 
       const { changelog, strike } = await strikeUser(
         id,
         type,
         reason,
         context,
-        caseId,
+        safeCaseId,
         days,
       );
 
@@ -109,6 +122,7 @@ export function UserStrikeActions({
 
   return (
     <>
+      {/* STRIKE */}
       <AlertDialog.Root>
         <AlertDialog.Trigger>
           <Button disabled={mutation.isPending}>Strike</Button>
@@ -132,7 +146,7 @@ export function UserStrikeActions({
           </AlertDialog.Description>
 
           <Flex gap="3" mt="4" justify="end" align="center">
-            {!caseId && (
+            {!safeCaseId && (
               <Badge color="red">
                 This strike will not be associated with a case!
               </Badge>
@@ -150,6 +164,8 @@ export function UserStrikeActions({
           </Flex>
         </AlertDialog.Content>
       </AlertDialog.Root>
+
+      {/* SUSPEND / UNSUSPEND */}
       {actualFlags === USER_FLAG_SUSPENDED ? (
         <Button
           color="amber"
@@ -211,7 +227,7 @@ export function UserStrikeActions({
             </AlertDialog.Description>
 
             <Flex gap="3" mt="4" justify="end" align="center">
-              {!caseId && (
+              {!safeCaseId && (
                 <Badge color="red">
                   This strike will not be associated with a case!
                 </Badge>
@@ -230,11 +246,12 @@ export function UserStrikeActions({
           </AlertDialog.Content>
         </AlertDialog.Root>
       )}
+
+      {/* BAN */}
       <AlertDialog.Root>
         <AlertDialog.Trigger>
           <Button
             color="red"
-            // TODO
             disabled={
               true || mutation.isPending || actualFlags === USER_FLAG_BANNED
             }
@@ -268,7 +285,7 @@ export function UserStrikeActions({
           </AlertDialog.Description>
 
           <Flex gap="3" mt="4" justify="end" align="center">
-            {!caseId && (
+            {!safeCaseId && (
               <Badge color="red">
                 This strike will not be associated with a case!
               </Badge>
@@ -313,6 +330,7 @@ export function UserStrikes({
           addStrike={(strike) => setStrikes((arr) => [...arr, strike])}
         />
       </Flex>
+
       <Table.Root>
         <Table.Header>
           <Table.Row>
