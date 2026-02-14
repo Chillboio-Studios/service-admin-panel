@@ -56,12 +56,14 @@ export async function strikeUser(
     changelogDoc = {
       object: { type: "User", id: userId },
       type: "user/strike",
+      id: strike._id,
       reason,
     };
   } else if (type === "suspension") {
     changelogDoc = {
       object: { type: "User", id: userId },
       type: "user/suspend",
+      id: strike._id,
       duration,
       reason,
     };
@@ -69,6 +71,7 @@ export async function strikeUser(
     changelogDoc = {
       object: { type: "User", id: userId },
       type: "user/ban",
+      id: strike._id,
       reason,
     };
   }
