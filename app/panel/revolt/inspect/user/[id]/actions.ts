@@ -181,9 +181,8 @@ export async function disableAccount(userId: string) {
   await accounts().updateOne({ _id: userId }, { $set: { disabled: true } });
   await createChangelog(userEmail, {
     object: { type: "User", id: userId },
-    type: "user/strike",
-    id: userId,
-    reason: ["Account disabled by administrator"],
+    type: "comment",
+    text: "Account disabled by administrator",
   } as any);
   return { success: true };
 }
@@ -209,9 +208,8 @@ export async function queueAccountDeletion(userId: string) {
   );
   await createChangelog(userEmail, {
     object: { type: "User", id: userId },
-    type: "user/strike",
-    id: userId,
-    reason: ["Account deletion queued (14 days)"],
+    type: "comment",
+    text: "Account deletion queued (14 days)",
   } as any);
   return { success: true };
 }
@@ -241,9 +239,8 @@ export async function updateAccountEmail(userId: string, newEmail: string) {
   );
   await createChangelog(userEmail, {
     object: { type: "User", id: userId },
-    type: "user/strike",
-    id: userId,
-    reason: [`Email changed to ${newEmail}`],
+    type: "comment",
+    text: `Email changed to ${newEmail}`,
   } as any);
   return { success: true };
 }
@@ -265,9 +262,8 @@ export async function disableMfaTotp(userId: string) {
   );
   await createChangelog(userEmail, {
     object: { type: "User", id: userId },
-    type: "user/strike",
-    id: userId,
-    reason: ["TOTP disabled by administrator"],
+    type: "comment",
+    text: "TOTP disabled by administrator",
   } as any);
   return { success: true };
 }
@@ -302,9 +298,8 @@ export async function clearUserProfile(
 
   await createChangelog(userEmail, {
     object: { type: "User", id: userId },
-    type: "user/strike",
-    id: userId,
-    reason: [`Profile cleared: ${field}`],
+    type: "comment",
+    text: `Profile cleared: ${field}`,
   } as any);
 
   return { success: true };
@@ -329,7 +324,7 @@ export async function exportUserData(
       ),
       reports().find({ $or: [{ "content.id": userId }, { author_id: userId }] }).toArray(),
       bots().find({ owner: userId }).toArray(),
-      serverMembers().find({ _id: { $regex: `^${userId}_` } } as any).toArray(),
+      serverMembers().find({ "_id.user": userId } as any).toArray(),
       (await import("@/lib/db/types")).sessions().find({ user_id: userId }).toArray(),
     ]);
 
@@ -350,9 +345,8 @@ export async function exportUserData(
 
   await createChangelog(userEmail, {
     object: { type: "User", id: userId },
-    type: "user/strike",
-    id: userId,
-    reason: [`Data export (${exportType}) performed`],
+    type: "user/export",
+    exportType,
   } as any);
 
   return JSON.stringify(exportData, null, 2);
@@ -369,9 +363,8 @@ export async function sendUserAlert(userId: string, content: string) {
 
   await createChangelog(userEmail, {
     object: { type: "User", id: userId },
-    type: "user/strike",
-    id: userId,
-    reason: [`Alert sent: ${content.substring(0, 100)}`],
+    type: "comment",
+    text: `Alert sent: ${content.substring(0, 100)}`,
   } as any);
 
   return { success: true };
@@ -398,9 +391,8 @@ export async function unsuspendUser(userId: string) {
 
   await createChangelog(userEmail, {
     object: { type: "User", id: userId },
-    type: "user/strike",
-    id: userId,
-    reason: ["User unsuspended by administrator"],
+    type: "comment",
+    text: "User unsuspended by administrator",
   } as any);
 
   return { success: true };
@@ -449,7 +441,7 @@ export async function banUser(
 
   await createChangelog(userEmail, {
     object: { type: "User", id: userId },
-    type: "user/strike",
+    type: "user/ban",
     id: strike._id,
     reason,
   } as any);
@@ -479,16 +471,10 @@ export async function fetchUserBots(userId: string) {
 export async function fetchUserServers(userId: string) {
   await getScopedUser(RBAC_PERMISSION_MODERATION_AGENT);
   const memberships = await serverMembers()
-    .find({ _id: { $regex: `^${userId}_` } } as any)
+    .find({ "_id.user": userId } as any)
     .toArray();
 
-  const serverIds = memberships.map((m: any) => {
-    const parts = (m._id as any)?.server || m._id;
-    if (typeof parts === "string" && parts.includes("_")) {
-      return parts.split("_")[1];
-    }
-    return parts;
-  });
+  const serverIds = memberships.map((m: any) => m._id?.server).filter(Boolean);
 
   if (serverIds.length === 0) return [];
 
@@ -552,9 +538,8 @@ export async function setUserBadges(userId: string, badges: number) {
 
   await createChangelog(userEmail, {
     object: { type: "User", id: userId },
-    type: "user/strike",
-    id: userId,
-    reason: [`Badges updated to value: ${badges}`],
+    type: "comment",
+    text: `Badges updated to value: ${badges}`,
   } as any);
 
   return { success: true, badges };
@@ -576,9 +561,8 @@ export async function setServerFlags(serverId: string, flags: number) {
 
   await createChangelog(userEmail, {
     object: { type: "User", id: serverId },
-    type: "user/strike",
-    id: serverId,
-    reason: [`Server flags updated to value: ${flags}`],
+    type: "comment",
+    text: `Server flags updated to value: ${flags}`,
   } as any);
 
   return { success: true, flags };
@@ -590,7 +574,7 @@ export async function fetchServerDetails(serverId: string) {
   if (!server) return null;
 
   const memberCount = await serverMembers().countDocuments({
-    _id: { $regex: `_${serverId}$` },
+    "_id.server": serverId,
   } as any);
 
   return {
