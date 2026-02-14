@@ -58,6 +58,8 @@ const ChangeRenderer: Renderers = {
     name: change.userEmail,
     text: change.text,
   }),
+
+  // --- BOT DISCOVER ---
   "bot/discover/approve": (change) => ({
     type: "short",
     icon: <CheckIcon />,
@@ -75,12 +77,8 @@ const ChangeRenderer: Renderers = {
     color: "red",
     description: (
       <>
-        <Text color="plum">{change.userEmail}</Text>
-        <Text
-          className="underline"
-          aria-label={change.reason}
-          data-balloon-pos="up"
-        >
+        <Text color="plum">{change.userEmail}</Text>{" "}
+        <Text className="underline" aria-label={change.reason} data-balloon-pos="up">
           rejected
         </Text>{" "}
         this bot&apos;s request to be listed on Discover
@@ -94,17 +92,15 @@ const ChangeRenderer: Renderers = {
     description: (
       <>
         <Text color="plum">{change.userEmail}</Text>{" "}
-        <Text
-          className="underline"
-          aria-label={change.reason}
-          data-balloon-pos="up"
-        >
+        <Text className="underline" aria-label={change.reason} data-balloon-pos="up">
           delisted
         </Text>{" "}
         this bot from Discover
       </>
     ),
   }),
+
+  // --- SERVER DISCOVER ---
   "server/discover/approve": (change) => ({
     type: "short",
     icon: <CheckIcon />,
@@ -123,11 +119,7 @@ const ChangeRenderer: Renderers = {
     description: (
       <>
         <Text color="plum">{change.userEmail}</Text>{" "}
-        <Text
-          className="underline"
-          aria-label={change.reason}
-          data-balloon-pos="up"
-        >
+        <Text className="underline" aria-label={change.reason} data-balloon-pos="up">
           rejected
         </Text>{" "}
         this server&apos;s request to be listed on Discover
@@ -141,17 +133,15 @@ const ChangeRenderer: Renderers = {
     description: (
       <>
         <Text color="plum">{change.userEmail}</Text>{" "}
-        <Text
-          className="underline"
-          aria-label={change.reason}
-          data-balloon-pos="up"
-        >
+        <Text className="underline" aria-label={change.reason} data-balloon-pos="up">
           delisted
         </Text>{" "}
         this server from Discover
       </>
     ),
   }),
+
+  // --- CASE EVENTS ---
   "case/categorise": (change) => ({
     type: "short",
     icon: <BadgeIcon />,
@@ -160,11 +150,9 @@ const ChangeRenderer: Renderers = {
       <>
         <Text color="plum">{change.userEmail}</Text> categorised this as{" "}
         {change.category.map((cat) => (
-          <>
-            <Badge key={cat} color="bronze">
-              {cat}
-            </Badge>{" "}
-          </>
+          <Badge key={cat} color="bronze">
+            {cat}
+          </Badge>
         ))}
       </>
     ),
@@ -219,6 +207,8 @@ const ChangeRenderer: Renderers = {
       </>
     ),
   }),
+
+  // --- USER EVENTS ---
   "user/strike": (change) => ({
     type: "short",
     icon: <ValueNoneIcon />,
@@ -263,7 +253,101 @@ const ChangeRenderer: Renderers = {
       </>
     ),
   }),
+
+  // --- PERSON EVENTS ---
+  "person/create": (change) => ({
+    type: "short",
+    icon: <PlusIcon />,
+    color: "green",
+    description: (
+      <>
+        <Text color="plum">{change.userEmail}</Text> created this person record
+      </>
+    ),
+  }),
+  "person/approve": (change) => ({
+    type: "short",
+    icon: <CheckIcon />,
+    color: "green",
+    description: (
+      <>
+        <Text color="plum">{change.userEmail}</Text> approved this person
+      </>
+    ),
+  }),
+  "person/reject": (change) => ({
+    type: "short",
+    icon: <Cross2Icon />,
+    color: "red",
+    description: (
+      <>
+        <Text color="plum">{change.userEmail}</Text> rejected this person
+      </>
+    ),
+  }),
+  "person/position": (change) => ({
+    type: "short",
+    icon: <BadgeIcon />,
+    color: "blue",
+    description: (
+      <>
+        <Text color="plum">{change.userEmail}</Text> updated position to{" "}
+        <Text color="blue">{change.positionId}</Text>
+      </>
+    ),
+  }),
+  "person/role": (change) => ({
+    type: "short",
+    icon: <BadgeIcon />,
+    color: "blue",
+    description: (
+      <>
+        <Text color="plum">{change.userEmail}</Text> updated role to{" "}
+        <Text color="blue">{change.roleId}</Text>
+      </>
+    ),
+  }),
+
+  // --- REPORT EVENTS ---
+  "report/create": (change) => ({
+    type: "short",
+    icon: <PlusIcon />,
+    color: "blue",
+    description: (
+      <>
+        <Text color="plum">{change.userEmail}</Text> created this report
+      </>
+    ),
+  }),
+
+  // --- DISCOVER REQUEST EVENTS ---
+  "discover/approve": (change) => ({
+    type: "short",
+    icon: <CheckIcon />,
+    color: "green",
+    description: (
+      <>
+        <Text color="plum">{change.userEmail}</Text> approved this Discover
+        request
+      </>
+    ),
+  }),
+  "discover/reject": (change) => ({
+    type: "short",
+    icon: <Cross1Icon />,
+    color: "red",
+    description: (
+      <>
+        <Text color="plum">{change.userEmail}</Text>{" "}
+        <Text className="underline" aria-label={change.reason} data-balloon-pos="up">
+          rejected
+        </Text>{" "}
+        this Discover request
+      </>
+    ),
+  }),
 };
+
 
 export function Changelog({ object }: { object: ChangeLogDocument["object"] }) {
   const { data: changes } = useQuery({
