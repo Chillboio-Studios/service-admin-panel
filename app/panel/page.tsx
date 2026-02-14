@@ -15,11 +15,15 @@ import {
   Grid,
   Heading,
   Text,
+  Tabs,
 } from "@radix-ui/themes";
 import {
   ExclamationTriangleIcon,
   GlobeIcon,
   PersonIcon,
+  BarChartIcon,
+  GearIcon,
+  BookmarkIcon,
 } from "@radix-ui/react-icons";
 
 import pkg from "../../package.json";
@@ -88,6 +92,24 @@ export default async function Home() {
               gap="3"
               width="auto"
             >
+              {/* Analytics */}
+              {(permissions.hr || permissions.modAgent) && (
+                <Card>
+                  <Flex direction="column" gap="3">
+                    <Flex gap="2" align="center">
+                      <BarChartIcon width="20" height="20" />
+                      <Heading size="5">Analytics</Heading>
+                    </Flex>
+                    <Text size="2" color="gray">
+                      Platform statistics, metrics, and trends
+                    </Text>
+                    <Button asChild size="2" variant="outline">
+                      <Link href="/panel/analytics">View Dashboard</Link>
+                    </Button>
+                  </Flex>
+                </Card>
+              )}
+
               {permissions.hr && (
                 <Card>
                   <Flex direction="column" gap="3">
@@ -96,8 +118,7 @@ export default async function Home() {
                       <Heading size="5">Human Resources</Heading>
                     </Flex>
                     <Text size="2" color="gray">
-                      Manage your team members, positions, and organizational
-                      structure
+                      Manage team members, roles, and positions
                     </Text>
                     <Button asChild size="2" variant="outline">
                       <Link href="/panel/hr">Go to HR</Link>
@@ -114,10 +135,61 @@ export default async function Home() {
                       <Heading size="5">Content Moderation</Heading>
                     </Flex>
                     <Text size="2" color="gray">
-                      Search users, manage reports, and handle moderation cases
+                      Search users, manage reports, and moderation cases
                     </Text>
                     <Button asChild size="2" variant="outline">
-                      <Link href="/panel/mod">Go to Moderation</Link>
+                      <Link href="/panel/mod/cases">Manage Cases</Link>
+                    </Button>
+                  </Flex>
+                </Card>
+              )}
+
+              {permissions.modAgent && (
+                <Card>
+                  <Flex direction="column" gap="3">
+                    <Flex gap="2" align="center">
+                      <BookmarkIcon width="20" height="20" />
+                      <Heading size="5">User Management</Heading>
+                    </Flex>
+                    <Text size="2" color="gray">
+                      Search and manage platform users
+                    </Text>
+                    <Button asChild size="2" variant="outline">
+                      <Link href="/panel/users">View Users</Link>
+                    </Button>
+                  </Flex>
+                </Card>
+              )}
+
+              {permissions.hr && (
+                <Card>
+                  <Flex direction="column" gap="3">
+                    <Flex gap="2" align="center">
+                      <GearIcon width="20" height="20" />
+                      <Heading size="5">Positions & Roles</Heading>
+                    </Flex>
+                    <Text size="2" color="gray">
+                      Configure organizational structure
+                    </Text>
+                    <Button asChild size="2" variant="outline">
+                      <Link href="/panel/hr/positions-roles">Manage</Link>
+                    </Button>
+                  </Flex>
+                </Card>
+              )}
+
+              {(permissions.modAgent || permissions.hr) && (
+                <Card>
+                  <Flex direction="column" gap="3">
+                    <Flex gap="2" align="center">
+                      <GearIcon width="20" height="20" />
+                      <Heading size="5">Settings & Audit</Heading>
+                    </Flex>
+                    <Text size="2" color="gray">
+                      System configuration and audit logs
+                    </Text>
+                    <Button asChild size="2" variant="outline">
+                      <Link href="/panel/settings">Go to Settings</Link>
                     </Button>
                   </Flex>
                 </Card>
@@ -131,7 +203,7 @@ export default async function Home() {
                       <Heading size="5">Discover</Heading>
                     </Flex>
                     <Text size="2" color="gray">
-                      Manage Discover server applications and requests
+                      Manage Discover applications and requests
                     </Text>
                     <Button asChild size="2" variant="outline">
                       <Link href="/panel/mod/legacy/discover">View Queue</Link>
@@ -144,7 +216,7 @@ export default async function Home() {
             <Card>
               <Flex direction="column" gap="3">
                 <Heading size="5">Quick Actions</Heading>
-                <Grid columns={{ initial: "1", sm: "2" }} gap="2">
+                <Grid columns={{ initial: "1", sm: "2", md: "4" }} gap="2">
                   {permissions.modAgent && (
                     <>
                       <Button asChild variant="outline">
@@ -155,14 +227,75 @@ export default async function Home() {
                           Create Report
                         </Link>
                       </Button>
+                      <Button asChild variant="outline">
+                        <Link href="/panel/mod/cases">View Cases</Link>
+                      </Button>
+                      <Button asChild variant="outline">
+                        <Link href="/panel/users">Search Users</Link>
+                      </Button>
                     </>
                   )}
                   {permissions.hr && (
+                    <>
+                      <Button asChild variant="outline">
+                        <Link href="/panel/hr/team/new">Add Team Member</Link>
+                      </Button>
+                      <Button asChild variant="outline">
+                        <Link href="/panel/hr/positions-roles">Configure Org</Link>
+                      </Button>
+                      <Button asChild variant="outline">
+                        <Link href="/panel/hr/team">View Team</Link>
+                      </Button>
+                    </>
+                  )}
+                  {(permissions.modAgent || permissions.hr) && (
                     <Button asChild variant="outline">
-                      <Link href="/panel/hr/team/new">Add Team Member</Link>
+                      <Link href="/panel/settings">Audit Log</Link>
                     </Button>
                   )}
                 </Grid>
+              </Flex>
+            </Card>
+
+            <Card>
+              <Flex direction="column" gap="3">
+                <Heading size="5">Dashboard Features</Heading>
+                <Flex direction="column" gap="2">
+                  <Grid columns={{ initial: "1", sm: "2" }} gap="2">
+                    <Flex direction="column" gap="1">
+                      <Text size="2" weight="medium">📊 Analytics Dashboard</Text>
+                      <Text size="1" color="gray">Real-time platform statistics and trends</Text>
+                    </Flex>
+                    <Flex direction="column" gap="1">
+                      <Text size="2" weight="medium">👥 Team Management</Text>
+                      <Text size="1" color="gray">HR features for team organization</Text>
+                    </Flex>
+                    <Flex direction="column" gap="1">
+                      <Text size="2" weight="medium">⚖️ Case Management</Text>
+                      <Text size="1" color="gray">Advanced moderation case handling</Text>
+                    </Flex>
+                    <Flex direction="column" gap="1">
+                      <Text size="2" weight="medium">📋 Audit Logs</Text>
+                      <Text size="1" color="gray">Comprehensive activity tracking</Text>
+                    </Flex>
+                    <Flex direction="column" gap="1">
+                      <Text size="2" weight="medium">⚙️ Configuration</Text>
+                      <Text size="1" color="gray">System settings and automation</Text>
+                    </Flex>
+                    <Flex direction="column" gap="1">
+                      <Text size="2" weight="medium">📁 Data Export</Text>
+                      <Text size="1" color="gray">Export data as JSON or CSV</Text>
+                    </Flex>
+                    <Flex direction="column" gap="1">
+                      <Text size="2" weight="medium">🔍 User Search</Text>
+                      <Text size="1" color="gray">Advanced user discovery and filtering</Text>
+                    </Flex>
+                    <Flex direction="column" gap="1">
+                      <Text size="2" weight="medium">📊 User Metrics</Text>
+                      <Text size="1" color="gray">Detailed user statistics and trends</Text>
+                    </Flex>
+                  </Grid>
+                </Flex>
               </Flex>
             </Card>
           </>

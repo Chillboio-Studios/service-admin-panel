@@ -31,6 +31,7 @@
     "react": "rc",
     "react-dom": "rc",
     "react-markdown": "^9.0.1",
+    "recharts": "^2.10.3",
     "redis": "^4.6.13",
     "revolt-api": "^0.6.9",
     "revolt-nodejs-bindings": "0.7.15-rev0.0.2",
