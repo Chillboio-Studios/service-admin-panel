@@ -5,6 +5,7 @@ import { RBAC_PERMISSION_MODERATION_DISCOVER } from "@/lib/auth/rbacInternal";
 import { createChangelog } from "@/lib/core";
 import { ChangeLogDocument } from "@/lib/db/types";
 import { col } from "@/lib/db";
+import { ObjectId } from "mongodb";
 
 export interface DiscoverRequest {
   _id: string;
@@ -14,6 +15,9 @@ export interface DiscoverRequest {
   status: "pending" | "approved" | "rejected";
   created_at: Date;
   created_by: string;
+  reviewed_by?: string;
+  reviewed_at?: Date;
+  rejection_reason?: string;
 }
 
 export async function fetchDiscoverRequestsAction() {
@@ -31,7 +35,7 @@ export async function approveDiscoverRequest(requestId: string) {
   );
 
   await col<DiscoverRequest>("discover_requests").updateOne(
-    { _id: requestId },
+    { _id: new ObjectId(requestId) },
     {
       $set: {
         status: "approved",
@@ -43,10 +47,10 @@ export async function approveDiscoverRequest(requestId: string) {
 
   await createChangelog(userEmail, {
     object: {
-      type: "DiscoverRequest" as const,
+      type: "DiscoverRequest",
       id: requestId,
     },
-    type: "discover/approve" as const,
+    type: "discover/approve",
   } as Omit<ChangeLogDocument, "_id" | "userEmail">);
 }
 
@@ -58,8 +62,8 @@ export async function rejectDiscoverRequest(
     RBAC_PERMISSION_MODERATION_DISCOVER,
   );
 
-  await col<DiscoverRequest>(\"discover_requests\").updateOne(
-    { _id: requestId },
+  await col<DiscoverRequest>("discover_requests").updateOne(
+    { _id: new ObjectId(requestId) },
     {
       $set: {
         status: "rejected",
@@ -72,10 +76,10 @@ export async function rejectDiscoverRequest(
 
   await createChangelog(userEmail, {
     object: {
-      type: "DiscoverRequest" as const,
+      type: "DiscoverRequest",
       id: requestId,
     },
-    type: "discover/reject" as const,
+    type: "discover/reject",
     reason,
   } as Omit<ChangeLogDocument, "_id" | "userEmail">);
 }
