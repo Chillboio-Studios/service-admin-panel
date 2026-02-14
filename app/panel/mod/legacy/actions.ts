@@ -8,6 +8,7 @@ import {
 import { createChangelog } from "@/lib/core";
 import { ChangeLogDocument } from "@/lib/db/types";
 import { col } from "@/lib/db";
+import { ObjectId } from "mongodb";
 
 export interface ModeratorReport {
   _id: string;
@@ -75,7 +76,7 @@ export async function fetchReportsAction() {
 export async function fetchDiscoverRequestsAction() {
   await getScopedUser(RBAC_PERMISSION_MODERATION_DISCOVER);
 
-  return col<DiscoverRequest>(\"discover_requests\")
+  return col<DiscoverRequest>("discover_requests")
     .find({})
     .sort({ created_at: -1 })
     .toArray();
@@ -86,8 +87,8 @@ export async function approveDiscoverRequest(requestId: string) {
     RBAC_PERMISSION_MODERATION_DISCOVER,
   );
 
-  await col<DiscoverRequest>(\"discover_requests\").updateOne(
-    { _id: requestId },
+  await col<DiscoverRequest>("discover_requests").updateOne(
+    { _id: new ObjectId(requestId) },
     {
       $set: {
         status: "approved",
@@ -115,7 +116,7 @@ export async function rejectDiscoverRequest(
   );
 
   await col<DiscoverRequest>("discover_requests").updateOne(
-    { _id: requestId },
+    { _id: new ObjectId(requestId) },
     {
       $set: {
         status: "rejected",
