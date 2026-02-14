@@ -5,10 +5,9 @@ import { RBAC_PERMISSION_MODERATION_DISCOVER } from "@/lib/auth/rbacInternal";
 import { createChangelog } from "@/lib/core";
 import { ChangeLogDocument } from "@/lib/db/types";
 import { col } from "@/lib/db";
-import { ObjectId } from "mongodb";
 
 export interface DiscoverRequest {
-  _id: ObjectId; // MUST be ObjectId because col<T> enforces it
+  _id: string; // ← MUST be string
   server_id: string;
   server_name: string;
   reason: string;
@@ -35,7 +34,7 @@ export async function approveDiscoverRequest(requestId: string) {
   );
 
   await col<DiscoverRequest>("discover_requests").updateOne(
-    { _id: new ObjectId(requestId) },
+    { _id: requestId }, // ← FIXED
     {
       $set: {
         status: "approved",
@@ -63,7 +62,7 @@ export async function rejectDiscoverRequest(
   );
 
   await col<DiscoverRequest>("discover_requests").updateOne(
-    { _id: new ObjectId(requestId) },
+    { _id: requestId }, // ← FIXED
     {
       $set: {
         status: "rejected",

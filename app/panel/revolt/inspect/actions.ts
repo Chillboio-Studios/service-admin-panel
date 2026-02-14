@@ -23,11 +23,10 @@ function userToResult(
     id,
     type: "user",
     title: (user ? user.username + "#" + user.discriminator : email)!,
-    // TODO hard link
     iconURL: user
       ? user.avatar
-        ? `https://https://cdn.stoatusercontent.com//avatars/${user.avatar._id}`
-        : `https://api.stoat.chat/users/${user._id}/default_avatar`
+        ? `https://otube.nl/autumn/avatars/${user.avatar._id}`
+        : `https://otube.nl/api/users/${user._id}/default_avatar`
       : undefined,
     link: `/panel/revolt/inspect/user/${id}`,
   };
@@ -45,9 +44,8 @@ function channelToResult(channel: API.Channel): SearchResult {
     id: channel._id,
     type: "channel",
     title: channelDisplayName(channel),
-    // TODO: hard link
     iconURL: (channel as any).icon
-      ? `https://https://cdn.stoatusercontent.com//icons/${(channel as any).icon._id}`
+      ? `https://otube.nl/autumn/icons/${(channel as any).icon._id}`
       : "",
     link: `/panel/revolt/inspect/channel/${channel._id}`,
   };
@@ -58,9 +56,8 @@ function serverToResult(server: API.Server): SearchResult {
     id: server._id,
     type: "server",
     title: server.name,
-    // TODO: hard link
     iconURL: (server as any).icon
-      ? `https://https://cdn.stoatusercontent.com//icons/${(server as any).icon._id}`
+      ? `https://otube.nl/autumn/icons/${(server as any).icon._id}`
       : "",
     link: `/panel/revolt/inspect/server/${server._id}`,
   };
@@ -69,10 +66,9 @@ function serverToResult(server: API.Server): SearchResult {
 function reportDisplayName(report: ReportDocument) {
   return `${(report.additional_context || "No reason specified.")
     .trim()
-    .replace(
-      /\s+/g,
-      " ",
-    )} · ${report.content.report_reason} ${report.content.type}`;
+    .replace(/\s+/g, " ")} · ${report.content.report_reason} ${
+    report.content.type
+  }`;
 }
 
 export async function search(thing: string) {
@@ -82,9 +78,7 @@ export async function search(thing: string) {
 
   // If containing @, try match email to user/account
   if (thing.includes("@")) {
-    const account = await col<{ _id: string; email: string }>(
-      "accounts",
-    ).findOne(
+    const account = await col<{ _id: string; email: string }>("accounts").findOne(
       {
         $or: [{ email: thing }, { email_normalised: thing }],
       },
@@ -148,27 +142,22 @@ export async function search(thing: string) {
   if (thing.length === 26)
     await Promise.all([
       col<API.User>("users")
-        .findOne({
-          _id: thing,
-        })
+        .findOne({ _id: thing })
         .then((user) => user && results.push(userToResult(user._id, user))),
+
       col<API.Channel>("channels")
         .findOne({
           _id: thing,
-          channel_type: {
-            $ne: "SavedMessages",
-          },
+          channel_type: { $ne: "SavedMessages" },
         })
         .then((chn) => chn && results.push(channelToResult(chn))),
+
       col<API.Server>("servers")
-        .findOne({
-          _id: thing,
-        })
+        .findOne({ _id: thing })
         .then((srv) => srv && results.push(serverToResult(srv))),
+
       col<API.Message>("messages")
-        .findOne({
-          _id: thing,
-        })
+        .findOne({ _id: thing })
         .then(async (msg) => {
           if (msg) {
             const author = await col<API.User>("users").findOne({
@@ -188,13 +177,10 @@ export async function search(thing: string) {
         }),
     ]);
 
-  // Match IDs for reports, cases,
-  // partial report IDs (last 6 chars),
-  // partial case IDs (last 8 chars)
+  // Match reports
   if (thing.length === 26 || thing.length === 6)
     col<ReportDocument>("safety_reports")
       .find({
-        // TODO: no sanitisation into regexp, can inject arbitrary queries
         _id: thing.length === 26 ? thing : new RegExp(`${thing}$`),
       })
       .toArray()
@@ -209,10 +195,10 @@ export async function search(thing: string) {
         ),
       );
 
+  // Match cases
   if (thing.length === 26 || thing.length === 8)
     await col<CaseDocument>("safety_cases")
       .find({
-        // TODO: no sanitisation into regexp, can inject arbitrary queries
         _id: thing.length === 26 ? thing : new RegExp(`${thing}$`),
       })
       .toArray()
@@ -236,16 +222,13 @@ export async function search(thing: string) {
     switch (invite.type) {
       case "Server":
         await col<API.Server>("servers")
-          .findOne({
-            _id: invite.server,
-          })
+          .findOne({ _id: invite.server })
           .then((server) => server && results.push(serverToResult(server)));
         break;
+
       case "Group":
         await col<API.Channel>("channels")
-          .findOne({
-            _id: invite.channel,
-          })
+          .findOne({ _id: invite.channel })
           .then((channel) => channel && results.push(channelToResult(channel)));
         break;
     }

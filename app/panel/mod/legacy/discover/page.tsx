@@ -135,7 +135,7 @@ export default function DiscoverPage() {
                 </Table.Header>
                 <Table.Body>
                   {filteredRequests.map((request: DiscoverRequest) => (
-                    <Table.Row key={request._id.toString()}>
+                    <Table.Row key={request._id}>
                       <Table.RowHeaderCell>
                         <Text size="2" weight="medium">
                           {request.server_name}

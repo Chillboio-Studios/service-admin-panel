@@ -29,7 +29,7 @@ export function TeamMemberDetails({
   });
 
   const rejectMutation = useMutation({
-    mutationFn: () => rejectPersonRequest(personId),
+    mutationFn: () => rejectPersonRequest(personId, rejectReason),
   });
 
   return (
@@ -45,10 +45,16 @@ export function TeamMemberDetails({
 
       <AlertDialog.Root>
         <AlertDialog.Trigger>
-          <Button size="2" color="red" variant="soft" disabled={rejectMutation.isPending}>
+          <Button
+            size="2"
+            color="red"
+            variant="soft"
+            disabled={rejectMutation.isPending}
+          >
             Reject
           </Button>
         </AlertDialog.Trigger>
+
         <AlertDialog.Content>
           <AlertDialog.Title>Reject Member Request</AlertDialog.Title>
           <AlertDialog.Description size="2" color="gray">
@@ -58,7 +64,9 @@ export function TeamMemberDetails({
             <TextField.Root
               placeholder="Reason for rejection (optional)"
               value={rejectReason}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setRejectReason(e.currentTarget.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setRejectReason(e.currentTarget.value)
+              }
             />
           </AlertDialog.Description>
 
@@ -68,9 +76,8 @@ export function TeamMemberDetails({
                 Cancel
               </Button>
             </AlertDialog.Cancel>
-            <AlertDialog.Action
-              onClick={() => rejectMutation.mutate()}
-            >
+
+            <AlertDialog.Action onClick={() => rejectMutation.mutate()}>
               <Button color="red">Reject</Button>
             </AlertDialog.Action>
           </Flex>
@@ -82,6 +89,7 @@ export function TeamMemberDetails({
           ✓ Member approved successfully
         </Text>
       )}
+
       {rejectMutation.isSuccess && (
         <Text color="red" size="2">
           ✓ Request rejected

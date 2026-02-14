@@ -64,7 +64,7 @@ export async function approvePerson(personId: string) {
   } as Omit<ChangeLogDocument, "_id" | "userEmail">);
 }
 
-export async function rejectPersonRequest(personId: string) {
+export async function rejectPersonRequest(personId: string, reason: string) {
   const userEmail = await getScopedUser(RBAC_PERMISSION_HR_MEMBER_APPROVE);
 
   const person = await fetchPerson({ _id: personId });
@@ -78,6 +78,7 @@ export async function rejectPersonRequest(personId: string) {
       id: person._id,
     },
     type: "person/reject" as const,
+    reason,
   } as Omit<ChangeLogDocument, "_id" | "userEmail">);
 }
 
@@ -88,9 +89,6 @@ export async function grantPosition(
   const userEmail = await getScopedUser(
     RBAC_PERMISSION_HR_MEMBER_GRANT_POSITION(positionId),
   );
-
-  // This would require additional database functions
-  // Implementation depends on position data structure
 
   await createChangelog(userEmail, {
     object: {
@@ -106,8 +104,6 @@ export async function grantRole(personId: string, roleId: string) {
   const userEmail = await getScopedUser(
     RBAC_PERMISSION_HR_MEMBER_GRANT_ROLE(roleId),
   );
-
-  // This would require additional database functions
 
   await createChangelog(userEmail, {
     object: {

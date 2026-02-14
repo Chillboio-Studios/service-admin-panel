@@ -8,7 +8,6 @@ import {
 import { createChangelog } from "@/lib/core";
 import { ChangeLogDocument } from "@/lib/db/types";
 import { col } from "@/lib/db";
-import { ObjectId } from "mongodb";
 
 export interface ModeratorReport {
   _id: string;
@@ -21,7 +20,7 @@ export interface ModeratorReport {
 }
 
 export interface DiscoverRequest {
-  _id: ObjectId; // ← FIXED
+  _id: string; // ← RESTORED
   server_id?: string;
   server_name?: string;
   bot_id?: string;
@@ -88,7 +87,7 @@ export async function approveDiscoverRequest(requestId: string) {
   );
 
   await col<DiscoverRequest>("discover_requests").updateOne(
-    { _id: new ObjectId(requestId) },
+    { _id: requestId }, // ← FIXED
     {
       $set: {
         status: "approved",
@@ -116,7 +115,7 @@ export async function rejectDiscoverRequest(
   );
 
   await col<DiscoverRequest>("discover_requests").updateOne(
-    { _id: new ObjectId(requestId) },
+    { _id: requestId }, // ← FIXED
     {
       $set: {
         status: "rejected",
