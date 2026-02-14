@@ -10,6 +10,28 @@ import { sendMessage } from "@/lib/database/revolt/messages";
 import { findCaseById } from "@/lib/database/revolt/safety_cases";
 import { createStrike } from "@/lib/database/revolt/safety_strikes";
 
+// Extract only the User moderation variants from the union
+type UserChange =
+  | {
+      object: { type: "User"; id: string };
+      type: "user/strike";
+      id: string;
+      reason: string[];
+    }
+  | {
+      object: { type: "User"; id: string };
+      type: "user/suspend";
+      id: string;
+      duration: string;
+      reason: string[];
+    }
+  | {
+      object: { type: "User"; id: string };
+      type: "user/ban";
+      id: string;
+      reason: string[];
+    };
+
 export async function strikeUser(
   userId: string,
   type: "strike" | "suspension" | "ban",
@@ -50,7 +72,7 @@ export async function strikeUser(
   // -----------------------------
   // Correct changelog structure
   // -----------------------------
-  let changelogDoc: Omit<ChangeLogDocument, "_id" | "userEmail">;
+  let changelogDoc: UserChange;
 
   if (type === "strike") {
     changelogDoc = {
