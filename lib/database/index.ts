@@ -1,6 +1,8 @@
 import { Document, MongoClient } from "mongodb";
 import { Database, Err, database, init } from "revolt-nodejs-bindings";
 
+import { ensureCollection, ensureAllCollections } from "./ensureCollections";
+
 /**
  * Global handle to Mongo shared in process
  */
@@ -54,7 +56,16 @@ export async function callProcedure<A extends any[], R>(
 }
 
 /**
- * Create a collection handle generator for given parameters
+ * Ensure all known databases and collections exist.
+ * Call once at application startup.
+ */
+export async function initializeDatabase(): Promise<void> {
+  await ensureAllCollections(mongoClient());
+}
+
+/**
+ * Create a collection handle generator for given parameters.
+ * Automatically ensures the database and collection exist on first access.
  * @param db Database Name
  * @param col Collection Name
  * @returns Factory
@@ -63,7 +74,16 @@ export function createCollectionFn<T extends Document>(
   db: string,
   col: string,
 ) {
-  return () => mongoClient().db(db).collection<T>(col);
+  let ensured = false;
+  return () => {
+    const client = mongoClient();
+    if (!ensured) {
+      ensured = true;
+      // Fire-and-forget: ensure collection exists in the background
+      ensureCollection(client, db, col).catch(() => {});
+    }
+    return client.db(db).collection<T>(col);
+  };
 }
 
 export * from "./hr";
