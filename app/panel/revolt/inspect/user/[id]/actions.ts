@@ -47,43 +47,37 @@ export async function strikeUser(
     caseId,
   );
 
+  // -----------------------------
+  // Correct changelog structure
+  // -----------------------------
   let changelogDoc: Omit<ChangeLogDocument, "_id" | "userEmail">;
 
   if (type === "strike") {
     changelogDoc = {
-      object: {
-        type: "User" as const,
-        id: userId,
-      },
-      type: "user/strike" as const,
-      id: strike._id,
+      object: { type: "User", id: userId },
+      type: "user/strike",
       reason,
     };
   } else if (type === "suspension") {
     changelogDoc = {
-      object: {
-        type: "User" as const,
-        id: userId,
-      },
-      type: "user/suspend" as const,
-      id: strike._id,
+      object: { type: "User", id: userId },
+      type: "user/suspend",
       duration,
       reason,
     };
   } else {
     changelogDoc = {
-      object: {
-        type: "User" as const,
-        id: userId,
-      },
-      type: "user/ban" as const,
-      id: strike._id,
+      object: { type: "User", id: userId },
+      type: "user/ban",
       reason,
     };
   }
 
   const changelog = await createChangelog(userEmail, changelogDoc);
 
+  // -----------------------------
+  // Suspension logic
+  // -----------------------------
   if (type === "suspension") {
     await suspendUser(
       userId,
@@ -92,6 +86,9 @@ export async function strikeUser(
     );
   }
 
+  // -----------------------------
+  // DM notification (not for bans)
+  // -----------------------------
   if (type !== "ban") {
     const channel = await createOrFindDM(
       userId,
