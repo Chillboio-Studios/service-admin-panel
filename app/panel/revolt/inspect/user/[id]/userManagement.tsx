@@ -20,7 +20,7 @@ import {
   TextField,
 } from "@radix-ui/themes";
 
-import { strikeUser } from "./actions";
+import { banUser, strikeUser, unsuspendUser as unsuspendUserAction } from "./actions";
 
 export const USER_FLAG_SUSPENDED = 1;
 export const USER_FLAG_DELETED = 2;
@@ -90,22 +90,25 @@ export function UserStrikeActions({
         return;
       }
 
-      const { changelog, strike } = await strikeUser(
-        id,
-        type,
-        reason,
-        context,
-        safeCaseId,
-        days,
-      );
-
-      consumeChangelog(changelog);
-      addStrike?.(strike);
-
-      if (type === "suspension") {
-        setFlags(USER_FLAG_SUSPENDED);
-      } else if (type === "ban") {
+      if (type === "ban") {
+        await banUser(id, reason, context, safeCaseId);
         setFlags(USER_FLAG_BANNED);
+      } else {
+        const { changelog, strike } = await strikeUser(
+          id,
+          type,
+          reason,
+          context,
+          safeCaseId,
+          days,
+        );
+
+        consumeChangelog(changelog);
+        addStrike?.(strike);
+
+        if (type === "suspension") {
+          setFlags(USER_FLAG_SUSPENDED);
+        }
       }
 
       setReason([""]);
@@ -116,6 +119,7 @@ export function UserStrikeActions({
 
   const unsuspend = useMutation({
     mutationFn: async () => {
+      await unsuspendUserAction(id);
       setFlags(0);
     },
   });
@@ -253,7 +257,7 @@ export function UserStrikeActions({
           <Button
             color="red"
             disabled={
-              true || mutation.isPending || actualFlags === USER_FLAG_BANNED
+              mutation.isPending || actualFlags === USER_FLAG_BANNED
             }
           >
             {actualFlags === USER_FLAG_BANNED ? "Banned" : "Ban"}

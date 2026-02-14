@@ -23,12 +23,21 @@ import {
   Text,
 } from "@radix-ui/themes";
 
+import { BadgeManager } from "./BadgeManager";
 import { UserCard } from "./UserCard";
+import {
+  ModerationHistoryCard,
+  UserBotsCard,
+  UserFriendsCard,
+  UserReportsCard,
+  UserServersCard,
+} from "./UserDataCards";
 import {
   ManageAccount,
   ManageAccountEmail,
   ManageAccountMFA,
 } from "./accountManagement";
+import { getUserBadges } from "./actions";
 import { UserStrikes } from "./userManagement";
 
 type Props = { params: { id: string } };
@@ -36,6 +45,7 @@ type Props = { params: { id: string } };
 const getUser = cache(async (id: string) => ({
   account: await fetchAccountById(id),
   user: await fetchUserById(id),
+  badges: await getUserBadges(id).catch(() => 0),
 }));
 
 export async function generateMetadata(
@@ -59,7 +69,7 @@ export const dynamic = "force-dynamic";
 export default async function User({ params }: Props) {
   await getScopedUser(RBAC_PERMISSION_MODERATION_AGENT);
 
-  const { account, user } = await getUser(params.id);
+  const { account, user, badges } = await getUser(params.id);
   if (!account && !user) notFound();
 
   const strikes = await fetchStrikes(params.id);
@@ -97,6 +107,8 @@ export default async function User({ params }: Props) {
               <ManageAccount
                 id={params.id}
                 attempts={account.lockout?.attempts || 0}
+                disabled={(account as any).disabled || false}
+                deletionQueued={!!(account as any).deletion}
               />
 
               <Flex direction="column" gap="2">
@@ -140,25 +152,24 @@ export default async function User({ params }: Props) {
         <Card>
           <Flex direction="column" gap="3">
             <Flex direction="column">
-              <Heading size="6">Moderation History</Heading>
+              <Heading size="6">Badges</Heading>
               <Text color="gray" size="1">
-                Cases this user has been involved in.
+                Manage platform badges assigned to this user.
               </Text>
             </Flex>
+            <BadgeManager userId={params.id} initialBadges={badges} />
           </Flex>
         </Card>
 
         <Card>
           <Flex direction="column" gap="3">
             <Flex direction="column">
-              <Heading size="6">Alerts</Heading>
+              <Heading size="6">Moderation History</Heading>
               <Text color="gray" size="1">
-                Moderation notices sent to the user.
+                Cases this user has been involved in.
               </Text>
             </Flex>
-            <Flex gap="2">
-              <Button variant="outline">Send Alert</Button>
-            </Flex>
+            <ModerationHistoryCard userId={params.id} />
           </Flex>
         </Card>
 
@@ -170,6 +181,7 @@ export default async function User({ params }: Props) {
                 Bots owned by this user.
               </Text>
             </Flex>
+            <UserBotsCard userId={params.id} />
           </Flex>
         </Card>
 
@@ -181,6 +193,7 @@ export default async function User({ params }: Props) {
                 Users who are friends with this user.
               </Text>
             </Flex>
+            <UserFriendsCard userId={params.id} />
           </Flex>
         </Card>
 
@@ -192,6 +205,7 @@ export default async function User({ params }: Props) {
                 Servers this user is in.
               </Text>
             </Flex>
+            <UserServersCard userId={params.id} />
           </Flex>
         </Card>
 
@@ -200,9 +214,10 @@ export default async function User({ params }: Props) {
             <Flex direction="column">
               <Heading size="6">Reports</Heading>
               <Text color="gray" size="1">
-                Reports this user has created.
+                Reports involving this user.
               </Text>
             </Flex>
+            <UserReportsCard userId={params.id} />
           </Flex>
         </Card>
       </Grid>
