@@ -1,120 +1,224 @@
-"use server";
-
+import { PageTitle } from "@/components/common/navigation/PageTitle";
+import { Changelog } from "@/components/core/admin/changelogs/Changelog";
 import { getScopedUser } from "@/lib/auth";
 import { RBAC_PERMISSION_MODERATION_AGENT } from "@/lib/auth/rbacInternal";
-import { createChangelog } from "@/lib/core";
-import { ChangeLogDocument } from "@/lib/db/types";
-import { suspendUser } from "@/lib/database/revolt";
-import { createOrFindDM } from "@/lib/database/revolt/channels";
-import { sendMessage } from "@/lib/database/revolt/messages";
-import { findCaseById } from "@/lib/database/revolt/safety_cases";
-import { createStrike } from "@/lib/database/revolt/safety_strikes";
+import {
+  fetchAccountById,
+  fetchUserById,
+  revoltUserInfo,
+} from "@/lib/database/revolt";
+import { fetchStrikes } from "@/lib/database/revolt/safety_strikes";
+import { Metadata } from "next";
+import { notFound } from "next/navigation";
+import { cache } from "react";
 
-export async function strikeUser(
-  userId: string,
-  type: "strike" | "suspension" | "ban",
-  reason: string[],
-  context: string,
-  caseId: string | undefined,
-  duration: "7" | "14" | "indefinite",
-) {
-  const userEmail = await getScopedUser(RBAC_PERMISSION_MODERATION_AGENT);
+import {
+  Box,
+  Button,
+  Card,
+  Flex,
+  Grid,
+  Heading,
+  Skeleton,
+  Text,
+} from "@radix-ui/themes";
 
-  // Sanitize caseId so bogus values like "$undefined" never hit Neon / ULID parsing
-  if (
-    !caseId ||
-    caseId === "$undefined" ||
-    caseId === "undefined" ||
-    caseId === "null" ||
-    caseId.trim() === "" ||
-    caseId.length !== 26
-  ) {
-    caseId = undefined;
-  }
+import { UserCard } from "./UserCard";
+import {
+  ManageAccount,
+  ManageAccountEmail,
+  ManageAccountMFA,
+} from "./accountManagement";
+import { UserStrikes } from "./userManagement";
 
-  if (caseId && !(await findCaseById(caseId))) {
-    throw "Case doesn't exist?";
-  }
+type Props = { params: { id: string } };
 
-  const strike = await createStrike(
-    userId,
-    reason.join(", ") +
-      (type === "suspension"
-        ? ` (${duration === "indefinite" ? duration : `${duration} day`})`
-        : "") +
-      (context ? ` - ${context}` : ""),
-    type,
-    caseId,
+const getUser = cache(async (id: string) => ({
+  account: await fetchAccountById(id),
+  user: await fetchUserById(id),
+}));
+
+export async function generateMetadata(
+  { params }: Props,
+): Promise<Metadata> {
+  const { account, user } = await getUser(params.id);
+  if (!account && !user)
+    return {
+      title: "Not Found",
+    };
+
+  return {
+    title:
+      (user ? `${user.username}#${user.discriminator}` : account!.email) +
+      " - Inspect User",
+  };
+}
+
+export const dynamic = "force-dynamic";
+
+export default async function User({ params }: Props) {
+  await getScopedUser(RBAC_PERMISSION_MODERATION_AGENT);
+
+  const { account, user } = await getUser(params.id);
+  if (!account && !user) notFound();
+
+  const strikes = await fetchStrikes(params.id);
+
+  return (
+    <>
+      <PageTitle
+        metadata={{
+          title:
+            (user ? `${user.username}#${user.discriminator}` : account!.email) +
+            " - Inspect User",
+        }}
+      />
+
+      <Grid columns={{ initial: "1", lg: "2", xl: "3" }} gap="2" width="auto">
+        {user && (
+          <UserCard
+            user={revoltUserInfo(user)}
+            showProfile
+            showActions="short"
+          />
+        )}
+
+        {account && (
+          <Card>
+            <Flex direction="column" gap="3">
+              <Flex direction="column">
+                <Heading size="6">Account Management</Heading>
+                <Text color="gray" size="1">
+                  Information about this user account and administrative
+                  options.
+                </Text>
+              </Flex>
+
+              <ManageAccount
+                id={params.id}
+                attempts={account.lockout?.attempts || 0}
+              />
+
+              <Flex direction="column" gap="2">
+                <Heading size="2">Email</Heading>
+                <ManageAccountEmail
+                  id={params.id}
+                  email={account.email}
+                  verified={account.verification.status !== "Pending"}
+                />
+              </Flex>
+
+              <Flex direction="column" gap="2">
+                <Heading size="2">Multi-Factor Authentication</Heading>
+                <ManageAccountMFA
+                  id={params.id}
+                  totp={account.mfa?.totp_token?.status === "Enabled"}
+                  recovery={account.mfa?.recovery_codes?.length || 0}
+                />
+              </Flex>
+            </Flex>
+          </Card>
+        )}
+
+        <Card>
+          <Flex direction="column" gap="3">
+            <Flex direction="column">
+              <Heading size="6">Strikes</Heading>
+              <Text color="gray" size="1">
+                Information about past infractions regarding this user.
+              </Text>
+            </Flex>
+            <UserStrikes
+              id={params.id}
+              flags={user?.flags || 0}
+              caseId={undefined}
+              strikes={strikes}
+            />
+          </Flex>
+        </Card>
+
+        <Card>
+          <Flex direction="column" gap="3">
+            <Flex direction="column">
+              <Heading size="6">Moderation History</Heading>
+              <Text color="gray" size="1">
+                Cases this user has been involved in.
+              </Text>
+            </Flex>
+          </Flex>
+        </Card>
+
+        <Card>
+          <Flex direction="column" gap="3">
+            <Flex direction="column">
+              <Heading size="6">Alerts</Heading>
+              <Text color="gray" size="1">
+                Moderation notices sent to the user.
+              </Text>
+            </Flex>
+            <Flex gap="2">
+              <Button variant="outline">Send Alert</Button>
+            </Flex>
+          </Flex>
+        </Card>
+
+        <Card>
+          <Flex direction="column" gap="3">
+            <Flex direction="column">
+              <Heading size="6">Bots</Heading>
+              <Text color="gray" size="1">
+                Bots owned by this user.
+              </Text>
+            </Flex>
+          </Flex>
+        </Card>
+
+        <Card>
+          <Flex direction="column" gap="3">
+            <Flex direction="column">
+              <Heading size="6">Friends</Heading>
+              <Text color="gray" size="1">
+                Users who are friends with this user.
+              </Text>
+            </Flex>
+          </Flex>
+        </Card>
+
+        <Card>
+          <Flex direction="column" gap="3">
+            <Flex direction="column">
+              <Heading size="6">Servers</Heading>
+              <Text color="gray" size="1">
+                Servers this user is in.
+              </Text>
+            </Flex>
+          </Flex>
+        </Card>
+
+        <Card>
+          <Flex direction="column" gap="3">
+            <Flex direction="column">
+              <Heading size="6">Reports</Heading>
+              <Text color="gray" size="1">
+                Reports this user has created.
+              </Text>
+            </Flex>
+          </Flex>
+        </Card>
+      </Grid>
+
+      <Card>
+        <Flex direction="column" gap="2">
+          <Flex direction="column">
+            <Heading size="6">Discuss</Heading>
+            <Text color="gray" size="1">
+              Recent actions and comments relating to this user.
+            </Text>
+          </Flex>
+
+          <Changelog object={{ type: "User", id: params.id }} />
+        </Flex>
+      </Card>
+    </>
   );
-
-  let changelogDoc: Omit<ChangeLogDocument, "_id" | "userEmail">;
-
-  if (type === "strike") {
-    changelogDoc = {
-      object: {
-        type: "User" as const,
-        id: userId,
-      },
-      type: "user/strike" as const,
-      id: strike._id,
-      reason,
-    };
-  } else if (type === "suspension") {
-    changelogDoc = {
-      object: {
-        type: "User" as const,
-        id: userId,
-      },
-      type: "user/suspend" as const,
-      id: strike._id,
-      duration,
-      reason,
-    };
-  } else {
-    changelogDoc = {
-      object: {
-        type: "User" as const,
-        id: userId,
-      },
-      type: "user/ban" as const,
-      id: strike._id,
-      reason,
-    };
-  }
-
-  const changelog = await createChangelog(userEmail, changelogDoc);
-
-  if (type === "suspension") {
-    await suspendUser(
-      userId,
-      duration === "indefinite" ? 0 : parseInt(duration),
-      reason,
-    );
-  }
-
-  if (type !== "ban") {
-    const channel = await createOrFindDM(
-      userId,
-      process.env.PLATFORM_ACCOUNT_ID!,
-    );
-
-    await sendMessage(channel._id, {
-      content: [
-        type === "suspension"
-          ? "Your account has been suspended, for one or more reasons:"
-          : "You have received an account strike, for one or more reasons:",
-        ...reason.map((r) => `- ${r}`),
-        "",
-        type === "suspension"
-          ? "Further violations may result in a permanent ban depending on severity, please abide by the [Acceptable Usage Policy](https://otube.nl/aup)."
-          : "Further violations will result in suspension or a permanent ban depending on severity, please abide by the [Acceptable Usage Policy](https://otube.nl/aup).",
-        ...(caseId
-          ? ["", `Case ID for your reference: **${caseId.substring(18)}**`]
-          : []),
-        "If you have further questions about this strike, please contact abuse@revolt.chat",
-      ].join("\n"),
-    });
-  }
-
-  return { changelog, strike };
 }
