@@ -8,7 +8,7 @@ import { col } from "@/lib/db";
 import { ObjectId } from "mongodb";
 
 export interface DiscoverRequest {
-  _id: string;
+  _id: ObjectId; // MUST be ObjectId because col<T> enforces it
   server_id: string;
   server_name: string;
   reason: string;
